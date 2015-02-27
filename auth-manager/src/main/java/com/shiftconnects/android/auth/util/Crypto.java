@@ -16,7 +16,7 @@
 
 package com.shiftconnects.android.auth.util;
 
-import org.jetbrains.annotations.NotNull;
+import android.support.annotation.NonNull;
 
 /**
  * Interface to encrypt and decrypt a string.
@@ -30,8 +30,8 @@ public interface Crypto {
      * @return the encrypted string
      * @throws Exception
      */
-    @NotNull
-    public String encrypt(@NotNull String password, @NotNull String decryptedString) throws Exception;
+    @NonNull
+    public String encrypt(@NonNull String password, @NonNull String decryptedString) throws Exception;
 
     /**
      * Decrypt the passed in encrypted string
@@ -40,7 +40,7 @@ public interface Crypto {
      * @return the decrypted string
      * @throws Exception
      */
-    @NotNull
-    public String decrypt(@NotNull String password, @NotNull String encryptedString) throws Exception;
+    @NonNull
+    public String decrypt(@NonNull String password, @NonNull String encryptedString) throws Exception;
 
 }
