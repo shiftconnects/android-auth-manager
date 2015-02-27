@@ -5,7 +5,7 @@ This library handles much of the cruft needed in Android to interface with Accou
 ## Setup
 
 * Implement ```OAuthTokenService``` which will be used to fetch OAuth tokens.
-* Implement ```Crypto``` which will be used to encrypt and decrypt the *optional* refresh token. *(if you aren't supported a refresh token you can just create a stub implementation that returns the same string)*
+* Implement ```Crypto``` which will be used to encrypt and decrypt the *optional* refresh token. *(if you aren't supporting a refresh token you can just create a stub implementation that returns the same string)*
 * Create an instance of ```AuthenticationManager``` which handles authenticating user accounts and storing them within ```AccountManager```.
 * Create an instance of ```AccountAuthenticator``` which requires a ```Class``` that will be used for login. The ```Class``` must be an ```Activity``` and must also implement ```AuthenticatorActivity``` and extend ```AccountAuthenticatorActivity``` or contain the same account authenticator code that exists within ```AccountAuthenticatorActivity```. This ```Activity``` will be launched if a call to ```AuthenticationManager.authenticate()``` is made and there is no authenticated account for the account type and auth token type provided.
 * Extend ```AccountAuthenticatorService``` and return your instance of ```AccountAuthenticator```. Example:
@@ -17,7 +17,7 @@ public class ExampleAuthenticatorService extends AccountAuthenticatorService {
     }
 }
 ```
-* Create an xml file which declares your ```AccountAuthenticator```. Example:
+* Create an xml file which declares your ```AccountAuthenticator``` and put it in your ```res/xml``` folder. Example:
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <account-authenticator xmlns:android="http://schemas.android.com/apk/res/android"
