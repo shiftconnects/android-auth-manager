@@ -23,6 +23,8 @@ import android.accounts.AccountManagerFuture;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -30,9 +32,6 @@ import com.shiftconnects.android.auth.model.OAuthToken;
 import com.shiftconnects.android.auth.service.OAuthTokenService;
 import com.shiftconnects.android.auth.util.Constants;
 import com.shiftconnects.android.auth.util.Crypto;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -116,7 +115,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
      * @return the {@link android.accounts.Account} if it exists, null if not
      */
     @Nullable
-    public Account getAccountByNameForType(@NotNull String accountName, @NotNull String accountType) {
+    public Account getAccountByNameForType(@NonNull String accountName, @NonNull String accountType) {
         validateAccountName(accountName);
         validateAccountType(accountType);
 
@@ -136,7 +135,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
      * @return an {@link android.accounts.Account} if one exists, null if none exist
      */
     @Nullable
-    public Account getSingleAccountForType(@NotNull String accountType) {
+    public Account getSingleAccountForType(@NonNull String accountType) {
         validateAccountType(accountType);
 
         final Account[] accounts = mAccountManager.getAccountsByType(accountType);
@@ -156,7 +155,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
      * @return the auth token if available
      */
     @Nullable
-    public synchronized String getAuthToken(@NotNull Account account, @NotNull String authTokenType) {
+    public synchronized String getAuthToken(@NonNull Account account, @NonNull String authTokenType) {
         validateAccount(account);
         validateAccountName(account.name);
         validateAccountType(account.type);
@@ -183,7 +182,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         return authToken;
     }
 
-    private String getNewAuthToken(@NotNull Account account, @NotNull String authTokenType) {
+    private String getNewAuthToken(@NonNull Account account, @NonNull String authTokenType) {
         String isClientCredentials = mAccountManager.getUserData(account, Constants.KEY_IS_CLIENT_CREDENTIALS);
         if (TextUtils.equals(isClientCredentials, Constants.VALUE_IS_CLIENT_CREDENTIALS)) {
             return getNewAuthTokenWithClientCredentials(account, authTokenType);
@@ -192,7 +191,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         }
     }
 
-    private String getNewAuthTokenWithRefreshToken(@NotNull Account account, @NotNull String authTokenType) {
+    private String getNewAuthTokenWithRefreshToken(@NonNull Account account, @NonNull String authTokenType) {
         final String encryptedRefreshToken = getEncryptedRefreshToken(account);
         if (TextUtils.isEmpty(encryptedRefreshToken)) {
             if (DEBUG) {
@@ -228,7 +227,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         return response.getAuthToken();
     }
 
-    private String getNewAuthTokenWithClientCredentials(@NotNull Account account, @NotNull String authTokenType) {
+    private String getNewAuthTokenWithClientCredentials(@NonNull Account account, @NonNull String authTokenType) {
         final long currentTime = System.currentTimeMillis();
         final OAuthToken response = mOAuthTokenService.getTokenWithClientCredentials(mClientId, mClientSecret);
         if (response == null) {
@@ -255,12 +254,12 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         notifyCallbacksAuthenticationFailed(new Exception("Was unable to refresh auth token"));
     }
 
-    public void setUserData(@NotNull Account account, @NotNull String key, String value) {
+    public void setUserData(@NonNull Account account, @NonNull String key, String value) {
         validateAccount(account);
         mAccountManager.setUserData(account, key, value);
     }
 
-    public String getUserData(@NotNull Account account, @NotNull String key) {
+    public String getUserData(@NonNull Account account, @NonNull String key) {
         validateAccount(account);
         return mAccountManager.getUserData(account, key);
     }
@@ -276,7 +275,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
      * @param accountType - the {@link android.accounts.AccountManager#KEY_ACCOUNT_TYPE}. Must NOT be null or empty
      * @param authTokenType - the auth token type. Must NOT be null or empty
      */
-    public void authenticate(@NotNull Activity activity, @NotNull String accountType, @NotNull String authTokenType) {
+    public void authenticate(@NonNull Activity activity, @NonNull String accountType, @NonNull String authTokenType) {
         validateActivity(activity);
         validateAccountType(accountType);
         validateAuthTokenType(authTokenType);
@@ -314,8 +313,8 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
      * @param newAccount - if true, this is a new account
      * @return the valid access token upon login
      */
-    @NotNull
-    public String loginWithUserNamePassword(@NotNull String userName, @NotNull String password, @NotNull String accountType, @NotNull String authTokenType, boolean newAccount) {
+    @NonNull
+    public String loginWithUserNamePassword(@NonNull String userName, @NonNull String password, @NonNull String accountType, @NonNull String authTokenType, boolean newAccount) {
         validateUserName(userName);
         validatePassword(password);
         validateAccountType(accountType);
@@ -331,7 +330,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         return response.getAuthToken();
     }
 
-    public String loginWithClientCredentials(@NotNull String accountName, @NotNull String accountType, @NotNull String authTokenType) {
+    public String loginWithClientCredentials(@NonNull String accountName, @NonNull String accountType, @NonNull String authTokenType) {
         validateAccountName(accountName);
         validateAccountType(accountType);
         validateAuthTokenType(authTokenType);
@@ -349,7 +348,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
      * @param account - the logged in {@link android.accounts.Account}. Must NOT be null
      * @param authTokenType - the auth token type. Must NOT be null or empty
      */
-    public void logout(@NotNull Account account, @NotNull String authTokenType) {
+    public void logout(@NonNull Account account, @NonNull String authTokenType) {
         validateAccount(account);
         validateAccountName(account.name);
         validateAccountType(account.type);
@@ -382,8 +381,8 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         return decryptedRefreshToken;
     }
 
-    private void saveAuthentication(@NotNull Account account, @NotNull String authTokenType, @NotNull OAuthTokenService.GrantType grantType,
-                                    @NotNull OAuthToken token, long requestTime) {
+    private void saveAuthentication(@NonNull Account account, @NonNull String authTokenType, @NonNull OAuthTokenService.GrantType grantType,
+                                    @NonNull OAuthToken token, long requestTime) {
 
         final String authToken = token.getAuthToken();
 
@@ -428,7 +427,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         }
     }
 
-    private void invalidateAuthTokenForAccount(@NotNull Account account, @NotNull String authTokenType) {
+    private void invalidateAuthTokenForAccount(@NonNull Account account, @NonNull String authTokenType) {
         mAccountManager.invalidateAuthToken(account.type, mAccountManager.peekAuthToken(account, authTokenType));
     }
 
