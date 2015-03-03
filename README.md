@@ -3,7 +3,10 @@
 This library handles much of the cruft needed in Android to interface with AccountManager. It provides a mechanism for storing a user in your app within AccountManager and automatically refreshing an OAuth2 token when necessary. It currently supports [Resource Owner Password Credentials Grant](https://tools.ietf.org/html/rfc6749#section-4.3) and [Client Credentials Grant](https://tools.ietf.org/html/rfc6749#section-4.4) of RFC 6749.   
 
 ## Setup
-
+* Add the following to your ```build.gradle``` file:
+```gradle
+compile('com.shiftconnects.android.auth:android-auth-manager:1.0.0')
+```
 * Implement ```OAuthTokenService``` which will be used to fetch OAuth tokens.
 * Implement ```Crypto``` which will be used to encrypt and decrypt the *optional* refresh token. *(if you aren't supporting a refresh token you can just create a stub implementation that returns the same string)*
 * Create an instance of ```AuthenticationManager``` which handles authenticating user accounts and storing them within ```AccountManager```.

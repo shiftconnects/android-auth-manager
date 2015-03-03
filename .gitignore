@@ -6,6 +6,7 @@
 /.idea/scopes
 .DS_Store
 /build
+bintray.properties
 
 ### Android template
 # Built application files
