@@ -2,9 +2,10 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
 
-version = "1.0.0"
+version = "1.0.1"
 def siteUrl = 'https://github.com/shiftconnects/android-auth-manager'      // Homepage URL of the library
 def gitUrl = 'https://github.com/shiftconnects/android-auth-manager.git'   // Git repository URL
+def projectDesc = 'Handles much of the cruft needed in Android to interface with AccountManager and provides a mechanism for storing a user in your app within AccountManager and automatically refreshing an OAuth2 token when necessary.'
 group = "com.shiftconnects.android.auth"
 
 Properties properties = new Properties()
@@ -41,6 +42,7 @@ bintray {
     pkg {
         repo = "maven"
         name = group
+        desc = projectDesc
         websiteUrl = siteUrl
         vcsUrl = gitUrl
         licenses = ["Apache-2.0"]
@@ -51,6 +53,12 @@ bintray {
             gpg {
                 sign = true
                 passphrase = gpgPhrase
+            }
+            mavenCentralSync {
+                sync = true
+                user = properties.getProperty("oss.userToken")
+                password = properties.getProperty("oss.userTokenValue")
+                close = '1'
             }
         }
     }
@@ -64,7 +72,8 @@ install {
                 packaging 'aar'
 
                 // Add your description here
-                name 'Handles much of the cruft needed in Android to interface with AccountManager and provides a mechanism for storing a user in your app within AccountManager and automatically refreshing an OAuth2 token when necessary.'
+                name 'Android Authentication Manager'
+                description projectDesc
                 url siteUrl
 
                 // Set your license
