@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
 
-version = "1.0.1"
+version = "1.0.2"
 def siteUrl = 'https://github.com/shiftconnects/android-auth-manager'      // Homepage URL of the library
 def gitUrl = 'https://github.com/shiftconnects/android-auth-manager.git'   // Git repository URL
 def projectDesc = 'Handles much of the cruft needed in Android to interface with AccountManager and provides a mechanism for storing a user in your app within AccountManager and automatically refreshing an OAuth2 token when necessary.'
