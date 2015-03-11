@@ -33,7 +33,7 @@ import android.util.Log;
 public class AccountAuthenticator extends AbstractAccountAuthenticator {
 
     private static final String TAG = AccountAuthenticator.class.getSimpleName();
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private Context mContext;
     private Class mLoginClass;

@@ -1,4 +1,7 @@
 v1.0.2
+Debug flag is now false in AccountAuthenticator.
+
+v1.0.2
 Bumped version to upload to Maven Central.
 
 v1.0.1
