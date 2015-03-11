@@ -5,7 +5,7 @@ This library handles much of the cruft needed in Android to interface with Accou
 ## Setup
 * Add the following to your ```build.gradle``` file:
 ```gradle
-compile('com.shiftconnects.android.auth:auth-manager:1.0.2')
+compile('com.shiftconnects.android.auth:auth-manager:1.0.3')
 ```
 * Implement ```OAuthTokenService``` which will be used to fetch OAuth tokens.
 * Implement ```Crypto``` which will be used to encrypt and decrypt the *optional* refresh token. *(if you aren't supporting a refresh token you can just create a stub implementation that returns the same string)*
