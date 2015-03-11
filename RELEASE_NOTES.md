@@ -1,5 +1,5 @@
 v1.0.3
-Debug flag is now false in AccountAuthenticator.
+Debug flag is now false in AccountAuthenticator. Moved ExampleCrypto over to the library as AESCrypto and it now encapsulates the generating and storing of salt and iv.
 
 v1.0.2
 Bumped version to upload to Maven Central.

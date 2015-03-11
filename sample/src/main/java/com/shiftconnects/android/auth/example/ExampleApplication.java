@@ -18,18 +18,15 @@ package com.shiftconnects.android.auth.example;
 
 import android.accounts.AccountManager;
 import android.app.Application;
+import android.content.Context;
 
 import com.google.gson.Gson;
 import com.shiftconnects.android.auth.AccountAuthenticator;
 import com.shiftconnects.android.auth.AuthenticationManager;
 import com.shiftconnects.android.auth.example.service.BitlyOAuthTokenService;
 import com.shiftconnects.android.auth.example.service.BitlyRetrofitService;
-import com.shiftconnects.android.auth.example.util.ExampleCrypto;
 import com.shiftconnects.android.auth.example.util.GsonConverter;
-
-import java.security.NoSuchAlgorithmException;
-
-import javax.crypto.NoSuchPaddingException;
+import com.shiftconnects.android.auth.util.AESCrypto;
 
 import retrofit.RestAdapter;
 
@@ -48,29 +45,25 @@ public class ExampleApplication extends Application {
     @Override public void onCreate() {
         super.onCreate();
 
-        try {
-            BITLY_SERVICE = new RestAdapter.Builder()
-                    .setEndpoint("https://api-ssl.bitly.com")
-                    .setLogLevel(RestAdapter.LogLevel.FULL)
-                    .setConverter(new GsonConverter(new Gson()))
-                    .build()
-                    .create(BitlyRetrofitService.class);
-            AUTHENTICATION_MANAGER = new AuthenticationManager(
-                    AccountManager.get(this),
-                    new BitlyOAuthTokenService(BITLY_SERVICE),
-                    new ExampleCrypto(ExampleCrypto.generateSalt(), ExampleCrypto.generateIV()), // TODO should save off salt and iv somewhere so we aren't generating every time
-                    BITLY_CLIENT_ID,
-                    BITLY_CLIENT_SECRET
-            );
-            ACCOUNT_AUTHENTICATOR = new AccountAuthenticator(
-                    this,
-                    ExampleLoginActivity.class,
-                    AUTHENTICATION_MANAGER
-            );
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            e.printStackTrace();
-        }
+        BITLY_SERVICE = new RestAdapter.Builder()
+                .setEndpoint("https://api-ssl.bitly.com")
+                .setLogLevel(RestAdapter.LogLevel.FULL)
+                .setConverter(new GsonConverter(new Gson()))
+                .build()
+                .create(BitlyRetrofitService.class);
+
+        AUTHENTICATION_MANAGER = new AuthenticationManager(
+                AccountManager.get(this),
+                new BitlyOAuthTokenService(BITLY_SERVICE),
+                new AESCrypto(getSharedPreferences("crypto", Context.MODE_PRIVATE)),
+                BITLY_CLIENT_ID,
+                BITLY_CLIENT_SECRET
+        );
+
+        ACCOUNT_AUTHENTICATOR = new AccountAuthenticator(
+                this,
+                ExampleLoginActivity.class,
+                AUTHENTICATION_MANAGER
+        );
     }
 }
