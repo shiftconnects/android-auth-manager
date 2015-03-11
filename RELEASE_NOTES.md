@@ -1,4 +1,4 @@
-v1.0.2
+v1.0.3
 Debug flag is now false in AccountAuthenticator.
 
 v1.0.2
