@@ -27,6 +27,7 @@ import com.shiftconnects.android.auth.example.service.BitlyOAuthTokenService;
 import com.shiftconnects.android.auth.example.service.BitlyRetrofitService;
 import com.shiftconnects.android.auth.example.util.GsonConverter;
 import com.shiftconnects.android.auth.util.AESCrypto;
+import com.shiftconnects.android.auth.util.AuthConstants;
 
 import retrofit.RestAdapter;
 
@@ -35,8 +36,8 @@ import retrofit.RestAdapter;
  */
 public class ExampleApplication extends Application {
 
-    private static final String BITLY_CLIENT_ID = "your-bitly-client-id";
-    private static final String BITLY_CLIENT_SECRET = "your-bitly-client-secret";
+    private static final String BITLY_CLIENT_ID = "9c8d2f12f6ab02e84f2692cc5acc01717ac807c1";
+    private static final String BITLY_CLIENT_SECRET = "49a498e19d3e92e23749b43af77b1663d447bb3c";
 
     public static AccountAuthenticator ACCOUNT_AUTHENTICATOR;
     public static AuthenticationManager AUTHENTICATION_MANAGER;
@@ -51,6 +52,8 @@ public class ExampleApplication extends Application {
                 .setConverter(new GsonConverter(new Gson()))
                 .build()
                 .create(BitlyRetrofitService.class);
+
+        AuthConstants.setDebug(true);
 
         AUTHENTICATION_MANAGER = new AuthenticationManager(
                 AccountManager.get(this),

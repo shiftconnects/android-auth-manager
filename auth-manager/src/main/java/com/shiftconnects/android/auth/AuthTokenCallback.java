@@ -22,21 +22,25 @@ import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
+import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.IOException;
 
+import static com.shiftconnects.android.auth.util.AuthConstants.DEBUG;
+import static com.shiftconnects.android.auth.util.AuthConstants.DEBUG_TAG;
+
 /**
  * Callback required for AccountManager which returns after a call to
- * {@link android.accounts.AccountManager#getAuthTokenByFeatures(String, String, String[], android.app.Activity, android.os.Bundle, android.os.Bundle, android.accounts.AccountManagerCallback, android.os.Handler)}
+ * {@link android.accounts.AccountManager#getAuthToken(Account, String, Bundle, Activity, AccountManagerCallback, Handler)}
  */
 public class AuthTokenCallback implements AccountManagerCallback<Bundle> {
     private static final String TAG = AuthTokenCallback.class.getSimpleName();
-    private static final boolean DEBUG = false;
 
-    public static interface Callbacks {
+    public interface Callbacks {
         void onGetAuthTokenCanceled();
         void onGetAuthTokenSuccessful(String authToken);
         void onGetAuthTokenNetworkError();
@@ -64,28 +68,28 @@ public class AuthTokenCallback implements AccountManagerCallback<Bundle> {
             }
             if (!TextUtils.isEmpty(authToken)) {
                 if (DEBUG) {
-                    Log.d(TAG, "Successfully retrieved an auth token from AccountManager! " + authToken);
+                    Log.d(String.format(DEBUG_TAG, TAG), "Successfully retrieved an auth token from AccountManager! " + authToken);
                 }
                 mCallbacks.onGetAuthTokenSuccessful(authToken);
             } else {
                 if (DEBUG) {
-                    Log.d(TAG, "Received an empty auth token from AccountManager. Authentication failed :(");
+                    Log.d(String.format(DEBUG_TAG, TAG), "Received an empty auth token from AccountManager. Authentication failed :(");
                 }
                 mCallbacks.onGetAuthTokenFailed(new Exception("Received an empty auth token from AccountManager"));
             }
         } catch (OperationCanceledException e) {
             if (DEBUG) {
-                Log.d(TAG, "Authentication was canceled.");
+                Log.d(String.format(DEBUG_TAG, TAG), "Authentication was canceled.");
             }
             mCallbacks.onGetAuthTokenCanceled();
         } catch (IOException e) {
             if (DEBUG) {
-                Log.d(TAG, "Encountered a network error while trying to authenticate!");
+                Log.d(String.format(DEBUG_TAG, TAG), "Encountered a network error while trying to authenticate!");
             }
             mCallbacks.onGetAuthTokenNetworkError();
         } catch (AuthenticatorException e) {
             if (DEBUG) {
-                Log.d(TAG, "Encountered a generic exception while trying to authenticate!");
+                Log.d(String.format(DEBUG_TAG, TAG), "Encountered a generic exception while trying to authenticate!");
             }
             mCallbacks.onGetAuthTokenFailed(e);
         }

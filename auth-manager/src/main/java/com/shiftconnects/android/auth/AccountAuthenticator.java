@@ -27,13 +27,15 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 
+import static com.shiftconnects.android.auth.util.AuthConstants.DEBUG;
+import static com.shiftconnects.android.auth.util.AuthConstants.DEBUG_TAG;
+
 /**
  * This class handles interfacing with {@link android.accounts.AccountManager} to add accounts and retrieve auth tokens
  */
 public class AccountAuthenticator extends AbstractAccountAuthenticator {
 
     private static final String TAG = AccountAuthenticator.class.getSimpleName();
-    private static final boolean DEBUG = false;
 
     private Context mContext;
     private Class mLoginClass;
@@ -48,10 +50,6 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
 
     @Override
     public Bundle addAccount(AccountAuthenticatorResponse response, String accountType, String authTokenType, String[] requiredFeatures, Bundle options) throws NetworkErrorException {
-        if (DEBUG) {
-            Log.d(TAG, "Adding account: "  + accountType + ", " + authTokenType);
-        }
-
         final Intent intent = new Intent(mContext, mLoginClass);
         intent.putExtra(AuthenticatorActivity.KEY_ACCOUNT_TYPE, accountType);
         intent.putExtra(AuthenticatorActivity.KEY_AUTHTOKEN_TYPE, authTokenType);
@@ -66,19 +64,19 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
     @Override
     public Bundle getAuthToken(AccountAuthenticatorResponse response, Account account, String authTokenType, Bundle options) throws NetworkErrorException {
         if (DEBUG) {
-            Log.d(TAG, "Getting auth token for account: " + account.name + " of type: " + authTokenType);
+            Log.d(String.format(DEBUG_TAG, TAG), "Getting auth token for account: " + account.name + " of type: " + authTokenType);
         }
 
         final Bundle result = new Bundle();
         String authToken = mAuthenticationManager.getAuthToken(account, authTokenType);
         if (DEBUG) {
-            Log.d(TAG, "AuthenticationManager returned: " + authToken);
+            Log.d(String.format(DEBUG_TAG, TAG), "AuthenticationManager returned: " + authToken);
         }
 
         // if we have an auth token we can return it now
         if (!TextUtils.isEmpty(authToken)) {
             if (DEBUG) {
-                Log.d(TAG, "We have an auth token. Returning " + authToken);
+                Log.d(String.format(DEBUG_TAG, TAG), "We have an auth token. Returning " + authToken);
             }
             result.putString(AuthenticatorActivity.KEY_ACCOUNT_NAME, account.name);
             result.putString(AuthenticatorActivity.KEY_ACCOUNT_TYPE, account.type);
@@ -87,7 +85,7 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
         }
 
         if (DEBUG) {
-            Log.d(TAG, "Wasn't able to get an auth token. Requiring user to login.");
+            Log.d(String.format(DEBUG_TAG, TAG), "Wasn't able to get an auth token. Requiring user to login.");
         }
 
         // If we get here, then we couldn't access the user's password - so we

@@ -36,6 +36,9 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import static com.shiftconnects.android.auth.util.AuthConstants.DEBUG;
+import static com.shiftconnects.android.auth.util.AuthConstants.DEBUG_TAG;
+
 /**
  * Crypto implementation using an AES transformation with a 128-bit key length.
  */
@@ -48,8 +51,6 @@ public class AESCrypto implements Crypto {
     private static final int ITERATIONS = 1000;
     private static final int KEY_LENGTH = 128;
     private static final int SALT_LENGTH = 128; // same size as key output
-
-    private static final boolean DEBUG = false;
 
     private SharedPreferences mSharedPrefs;
     private byte[] mSalt;
@@ -97,7 +98,7 @@ public class AESCrypto implements Crypto {
         if (TextUtils.isEmpty(saltString)) {
             try {
                 if (DEBUG) {
-                    Log.d(TAG, "salt is null. Generating one...");
+                    Log.d(String.format(DEBUG_TAG, TAG), "salt is null. Generating one...");
                 }
 
                 // generate a new salt
@@ -111,20 +112,20 @@ public class AESCrypto implements Crypto {
                 saltString = Base64.encodeToString(salt, Base64.DEFAULT);
 
                 if (DEBUG) {
-                    Log.d(TAG, "Newly generated encoded salt: " + saltString);
+                    Log.d(String.format(DEBUG_TAG, TAG), "Newly generated encoded salt: " + saltString);
                 }
 
                 // save to shared prefs
                 mSharedPrefs.edit().putString(SALT, saltString).apply();
             } catch (NoSuchAlgorithmException e) {
-                Log.e(TAG, "Could not setup salt. This is bad.");
+                Log.e(String.format(DEBUG_TAG, TAG), "Could not setup salt. This is bad.");
                 throw new RuntimeException("Unable to setup salt. Cannot run app.", e);
             }
         } else {
             salt = Base64.decode(saltString, Base64.DEFAULT);
 
             if (DEBUG) {
-                Log.d(TAG, "Salt loaded from disk: " + saltString);
+                Log.d(String.format(DEBUG_TAG, TAG), "Salt loaded from disk: " + saltString);
             }
         }
         return salt;
@@ -136,7 +137,7 @@ public class AESCrypto implements Crypto {
         if (TextUtils.isEmpty(ivString)) {
             try {
                 if (DEBUG) {
-                    Log.d(TAG, "Initialization vector is null. Generating one...");
+                    Log.d(String.format(DEBUG_TAG, TAG), "Initialization vector is null. Generating one...");
                 }
 
                 // generate a new iv
@@ -149,20 +150,20 @@ public class AESCrypto implements Crypto {
                 ivString = Base64.encodeToString(iv, Base64.DEFAULT);
 
                 if (DEBUG) {
-                    Log.d(TAG, "Newly generated encoded initialization vector: " + ivString);
+                    Log.d(String.format(DEBUG_TAG, TAG), "Newly generated encoded initialization vector: " + ivString);
                 }
 
                 // save to shared prefs
                 mSharedPrefs.edit().putString(IV, ivString).apply();
             } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-                Log.e(TAG, "Could not setup IV. This is bad.");
+                Log.e(String.format(DEBUG_TAG, TAG), "Could not setup IV. This is bad.");
                 throw new RuntimeException("Unable to setup IV. Cannot run app.", e);
             }
         } else {
             iv = Base64.decode(ivString, Base64.DEFAULT);
 
             if (DEBUG) {
-                Log.d(TAG, "IV loaded from disk: " + ivString);
+                Log.d(String.format(DEBUG_TAG, TAG), "IV loaded from disk: " + ivString);
             }
         }
         return iv;

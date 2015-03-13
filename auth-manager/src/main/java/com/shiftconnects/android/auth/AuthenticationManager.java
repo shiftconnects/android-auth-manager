@@ -30,20 +30,22 @@ import android.util.Log;
 
 import com.shiftconnects.android.auth.model.OAuthToken;
 import com.shiftconnects.android.auth.service.OAuthTokenService;
-import com.shiftconnects.android.auth.util.Constants;
+import com.shiftconnects.android.auth.util.AuthConstants;
 import com.shiftconnects.android.auth.util.Crypto;
 
 import java.util.ArrayList;
 import java.util.Date;
+
+import static com.shiftconnects.android.auth.util.AuthConstants.DEBUG;
+import static com.shiftconnects.android.auth.util.AuthConstants.DEBUG_TAG;
 
 /**
  * Manages interfacing the {@link android.accounts.AccountManager} with authentication for the app
  */
 public class AuthenticationManager implements AuthTokenCallback.Callbacks {
     private static final String TAG = AuthenticationManager.class.getSimpleName();
-    private static final boolean DEBUG = false;
 
-    public static interface Callbacks {
+    public interface Callbacks {
 
         /**
          * Authentication was canceled. (The user backed out of the login activity)
@@ -167,7 +169,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
                 Log.d(TAG, "No auth token is available for the account :(");
             }
         } else {
-            String expiration = mAccountManager.getUserData(account, Constants.KEY_TOKEN_EXPIRATION_TIME);
+            String expiration = mAccountManager.getUserData(account, AuthConstants.KEY_TOKEN_EXPIRATION_TIME);
             if (!TextUtils.isEmpty(expiration)) {
                 final long expirationTime = Long.valueOf(expiration);
                 if (System.currentTimeMillis() > expirationTime) {
@@ -183,8 +185,8 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
     }
 
     private String getNewAuthToken(@NonNull Account account, @NonNull String authTokenType) {
-        String isClientCredentials = mAccountManager.getUserData(account, Constants.KEY_IS_CLIENT_CREDENTIALS);
-        if (TextUtils.equals(isClientCredentials, Constants.VALUE_IS_CLIENT_CREDENTIALS)) {
+        String isClientCredentials = mAccountManager.getUserData(account, AuthConstants.KEY_IS_CLIENT_CREDENTIALS);
+        if (TextUtils.equals(isClientCredentials, AuthConstants.VALUE_IS_CLIENT_CREDENTIALS)) {
             return getNewAuthTokenWithClientCredentials(account, authTokenType);
         } else {
             return getNewAuthTokenWithRefreshToken(account, authTokenType);
@@ -195,7 +197,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         final String encryptedRefreshToken = getEncryptedRefreshToken(account);
         if (TextUtils.isEmpty(encryptedRefreshToken)) {
             if (DEBUG) {
-                Log.d(TAG, "failed to refresh auth token due to no refresh token available");
+                Log.d(String.format(DEBUG_TAG, TAG), "Failed to refresh auth token due to no refresh token available");
             }
             authenticationFailed(account, authTokenType);
             return null;
@@ -203,7 +205,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         final String decryptedRefreshToken = decryptRefreshToken(account, encryptedRefreshToken);
         if (TextUtils.isEmpty(decryptedRefreshToken)) {
             if (DEBUG) {
-                Log.d(TAG, "failed to refresh token due to a decryption failure");
+                Log.d(String.format(DEBUG_TAG, TAG), "Failed to refresh token due to a decryption failure");
             }
             authenticationFailed(account, authTokenType);
             return null;
@@ -212,7 +214,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         final OAuthToken response = mOAuthTokenService.getTokenWithRefreshToken(mClientId, mClientSecret, decryptedRefreshToken);
         if (response == null) {
             if (DEBUG) {
-                Log.d(TAG, "failed to refresh auth token due to an authentication exception");
+                Log.d(String.format(DEBUG_TAG, TAG), "Failed to refresh auth token due to an authentication exception");
             }
             authenticationFailed(account, authTokenType);
             return null;
@@ -221,7 +223,10 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         // invalidate the old token
         invalidateAuthTokenForAccount(account, authTokenType);
 
-        Log.d(TAG, "received a new auth token from the oauth service with a refresh token.");
+        if (DEBUG) {
+            Log.d(String.format(DEBUG_TAG, TAG), "Received a new auth token from the oauth service with a refresh token.");
+        }
+
         saveAuthentication(account, authTokenType, OAuthTokenService.GrantType.refresh_token, response, currentTime);
 
         return response.getAuthToken();
@@ -232,7 +237,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         final OAuthToken response = mOAuthTokenService.getTokenWithClientCredentials(mClientId, mClientSecret);
         if (response == null) {
             if (DEBUG) {
-                Log.d(TAG, "failed to refresh auth token due to an authentication exception");
+                Log.d(String.format(DEBUG_TAG, TAG), "Failed to refresh auth token due to an authentication exception");
             }
             authenticationFailed(account, authTokenType);
             return null;
@@ -242,7 +247,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         invalidateAuthTokenForAccount(account, authTokenType);
 
         if (DEBUG) {
-            Log.d(TAG, "received a new auth token from the oauth service with client credentials.");
+            Log.d(String.format(DEBUG_TAG, TAG), "Received a new auth token from the oauth service with client credentials.");
         }
         saveAuthentication(account, authTokenType, OAuthTokenService.GrantType.client_credentials, response, currentTime);
 
@@ -324,12 +329,31 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         final long currentTime = System.currentTimeMillis();
         OAuthToken response = mOAuthTokenService.getTokenWithPassword(mClientId, mClientSecret, userName, password);
         if (newAccount) {
+
+            if (DEBUG) {
+                Log.d(String.format(DEBUG_TAG, TAG), "Adding new account with username " + userName + " to AccountManager.");
+            }
+
             mAccountManager.addAccountExplicitly(account, null, null);
         }
+
+        if (DEBUG) {
+            Log.d(String.format(DEBUG_TAG, TAG), "Login was successful with username and password.");
+        }
+
         saveAuthentication(account, authTokenType, OAuthTokenService.GrantType.password, response, currentTime);
         return response.getAuthToken();
     }
 
+    /**
+     * Logs a user into the app by retrieving an auth token from the oauth service and saving it along with the account in {@link android.accounts.AccountManager}
+     * using client credentials
+     * @param accountName - the account name. Must NOT be null or empty
+     * @param accountType - the {@link android.accounts.AccountManager#KEY_ACCOUNT_TYPE}. Must NOT be null or empty
+     * @param authTokenType - the auth token type. Must NOT be null or empty
+     * @return the valid access token upon login
+     */
+    @NonNull
     public String loginWithClientCredentials(@NonNull String accountName, @NonNull String accountType, @NonNull String authTokenType) {
         validateAccountName(accountName);
         validateAccountType(accountType);
@@ -339,6 +363,11 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         final long currentTime = System.currentTimeMillis();
         OAuthToken response = mOAuthTokenService.getTokenWithClientCredentials(mClientId, mClientSecret);
         mAccountManager.addAccountExplicitly(account, null, null);
+
+        if (DEBUG) {
+            Log.d(String.format(DEBUG_TAG, TAG), "Login was successful with client credentials.");
+        }
+
         saveAuthentication(account, authTokenType, OAuthTokenService.GrantType.client_credentials, response, currentTime);
         return response.getAuthToken();
     }
@@ -348,7 +377,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
      * @param account - the logged in {@link android.accounts.Account}. Must NOT be null
      * @param authTokenType - the auth token type. Must NOT be null or empty
      */
-    public void logout(@NonNull Account account, @NonNull String authTokenType) {
+    public void logout(@NonNull final Account account, @NonNull String authTokenType) {
         validateAccount(account);
         validateAccountName(account.name);
         validateAccountType(account.type);
@@ -360,6 +389,12 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         mAccountManager.removeAccount(account, new AccountManagerCallback<Boolean>() {
             @Override public void run(AccountManagerFuture<Boolean> future) {
                 if (!TextUtils.isEmpty(authToken)) {
+
+                    if (DEBUG) {
+                        Log.d(String.format(DEBUG_TAG, TAG), "Removing account with name " + account.name + " and type " + accountType
+                                + " from AccountManager and invalidating auth token " + authToken);
+                    }
+
                     notifyCallbacksAuthenticationInvalidated(authToken);
                     mAccountManager.invalidateAuthToken(accountType, authToken);
                 }
@@ -368,7 +403,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
     }
 
     private String getEncryptedRefreshToken(Account account) {
-        return mAccountManager.getUserData(account, Constants.KEY_REFRESH_TOKEN);
+        return mAccountManager.getUserData(account, AuthConstants.KEY_REFRESH_TOKEN);
     }
 
     private String decryptRefreshToken(Account account, String encryptedRefreshToken) {
@@ -376,7 +411,7 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
         try {
             decryptedRefreshToken = mCrypto.decrypt(account.name, encryptedRefreshToken);
         } catch (Exception e) {
-            Log.e(TAG, "Failed to decrypt the refresh token", e);
+            Log.e(String.format(DEBUG_TAG, TAG), "Failed to decrypt the refresh token", e);
         }
         return decryptedRefreshToken;
     }
@@ -388,29 +423,29 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
 
         // set the auth token in AccountManager
         if (DEBUG) {
-            Log.d(TAG, "setting auth token in AccountManager: " + authToken);
+            Log.d(String.format(DEBUG_TAG, TAG), "Setting auth token in AccountManager: " + authToken);
         }
         mAccountManager.setAuthToken(account, authTokenType, authToken);
 
         if (token.getExpiresIn() > 0) {
             final long expirationTime = requestTime + (token.getExpiresIn() * 1000); // convert to milliseconds
             if (DEBUG) {
-                Log.d(TAG, "auth token expires [" + new Date(expirationTime) + "]");
+                Log.d(String.format(DEBUG_TAG, TAG), "Auth token expires [" + new Date(expirationTime) + "]");
             }
-            mAccountManager.setUserData(account, Constants.KEY_TOKEN_EXPIRATION_TIME, String.valueOf(expirationTime));
+            mAccountManager.setUserData(account, AuthConstants.KEY_TOKEN_EXPIRATION_TIME, String.valueOf(expirationTime));
         }
 
         if (grantType == OAuthTokenService.GrantType.client_credentials) {
             if (DEBUG) {
-                Log.d(TAG, "grant type is client_credentials, flagging in account manager.");
+                Log.d(String.format(DEBUG_TAG, TAG), "Grant type is client_credentials, flagging in account manager.");
             }
 
             // set flag in account manager
-            mAccountManager.setUserData(account, Constants.KEY_IS_CLIENT_CREDENTIALS, Constants.VALUE_IS_CLIENT_CREDENTIALS);
+            mAccountManager.setUserData(account, AuthConstants.KEY_IS_CLIENT_CREDENTIALS, AuthConstants.VALUE_IS_CLIENT_CREDENTIALS);
 
         } else if (!TextUtils.isEmpty(token.getRefreshToken())) {
             if (DEBUG) {
-                Log.d(TAG, "storing refresh token in account manager.");
+                Log.d(String.format(DEBUG_TAG, TAG), "Storing refresh token in account manager.");
             }
 
             // encrypt the refresh token
@@ -418,11 +453,11 @@ public class AuthenticationManager implements AuthTokenCallback.Callbacks {
                 String encryptedRefreshToken = mCrypto.encrypt(account.name, token.getRefreshToken());
 
                 // add other data to account manager
-                mAccountManager.setUserData(account, Constants.KEY_REFRESH_TOKEN, encryptedRefreshToken);
+                mAccountManager.setUserData(account, AuthConstants.KEY_REFRESH_TOKEN, encryptedRefreshToken);
 
             // if we get here due to an encryption failure then we will just not save the refresh token which will require them to login again
             } catch (Exception e) {
-                Log.e(TAG, "Unable to save refresh token.", e);
+                Log.e(String.format(DEBUG_TAG, TAG), "Unable to save refresh token.", e);
             }
         }
     }
